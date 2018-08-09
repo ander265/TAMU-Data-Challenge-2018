@@ -6,8 +6,8 @@ The question our project set to answer was: Is the median taxi driver in Chicago
 Note: Ridesharing company data is NOT included in the dataset. The analysis is on traditional cap companies operating within city limits.
 
 ## Submission by Team RNG
-Advisor - Dr. Irina Gaynanova 
-Team Director - Elina Sergeeva
-Predictive Modeling - Se-Yoon Lee
-Visualization - Weixi Zhu
-Data Wrangling & Visualization - Jared Anderson
+### Advisor - Dr. Irina Gaynanova 
+### Team Director - Elina Sergeeva
+### Predictive Modeling - Se-Yoon Lee
+### Visualization - Weixi Zhu
+### Data Wrangling & Visualization - Jared Anderson
