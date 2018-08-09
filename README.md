@@ -8,6 +8,6 @@ Note: Ridesharing company data is NOT included in the dataset. The analysis is o
 ## Submission by Team RNG
 ### Advisor - Dr. Irina Gaynanova 
 ### Team Director - Elina Sergeeva
-### Predictive Modeling - Se-Yoon Lee
-### Visualization - Weixi Zhu
-### Data Wrangling & Visualization - Jared Anderson
+### Predictive Modeling - Se-Yoon Lee & Elina Sergeeva
+### Visualization - Weixi Zhu & Jared Anderson
+### Data Wrangling - Jared Anderson
