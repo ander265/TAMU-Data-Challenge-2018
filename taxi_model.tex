@@ -1,0 +1,157 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\author{Se Yoon Lee}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{framed}
+\usepackage{tikz}
+\usepackage{mathtools}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{epsfig}
+\usepackage{makeidx}
+\usepackage{natbib}
+\usepackage{color}
+\usepackage{amsthm}
+\usepackage{framed}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{mathtools}
+\usepackage{multirow, makecell}
+\usepackage[normalem]{ulem}
+\usetikzlibrary{bayesnet}
+
+\title{Chicago Taxi}
+\author{•}
+
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent 
+\end{abstract}
+
+\section{Introduction}
+We have studied transportation data over five consecutive years within the city of Chicago, IL, U.S.A. Using information on over one hundred million unique records of taxi rides within Chicago city limits, the question we sought to answer with our findings was how business activity has changed for operating taxi companies from the beginning 2013 to the middle of 2017, and ultimately if the average cab driver was more well off towards the end of this period than at the beginning. \\
+We approached this problem using various tools, such as map visualizations and hierarchical Bayesian modeling. By investigating data on individual trips that included information on revenues, trip duration, and pickup and dropoff coordinates, we noticed patterns in the past that could be used to forecast future earnings for Chicago taxis.
+\section{Data Explanation}
+
+\section{Statistical Model: Bayesian Hierarchical Model}
+We adopted hierarchical Bayesian model which was proposed by Gelfand et al. \cite{gelfand1990} to capture the \emph{linear trend} of taxi fare for each 9 side in the Chicago city and trend of Chicago city itself. We focused on linear trend because it is easily understandable, and give us stratighfoward interpretation. The model is as follow.\\
+For $i = 1,2, \cdots, I$, $t = 1,2, \cdots, T$
+\begin{align}
+y_{it} & = \alpha_{i} + \beta_{i} t + \epsilon_{it}\\
+\epsilon_{it}& \overset{\text{i.i.d.}}{\sim} N(0,\sigma^{2})\\
+\sigma & \sim C^{+}(0,1)\\
+\alpha_{i} & \overset{\text{i.i.d.}}{\sim} N(\alpha_{c}, \sigma_{\alpha}^{2})\\
+\beta_{i} & \overset{\text{i.i.d.}}{\sim} N(\beta_{c}, \sigma_{\beta}^{2})\\
+\alpha_{c} & \sim p(\alpha_{c}) \propto 1 \\
+\beta_{c} & \sim p(\beta_{c}) \propto 1 \\
+\sigma_{\alpha} &\sim C^{+}(0,1)\\
+\sigma_{\beta} &\sim C^{+}(0,1).
+\end{align}
+In the original work of Gelfend et al. \cite{gelfand1990}, they used the inverse gamma priors $IG(0.001, 0.001)$ for $\sigma^{2}$, $\sigma_{\alpha}^{2}$, and $\sigma_{\beta}^{2}$ which is well-studied prior $IG(\epsilon, \epsilon)$ such that $\epsilon >  0$ in the hierarchical Bayesian modeling literature. However, in our model, we used half-Cauchy priors for $\sigma$, $\sigma_{\alpha}$, and $\sigma_{\beta}$, which was recommended by Gelman. \cite{gelman2006}. Given that we capture the linear trend of time series data $y_{it}$ for $t = 1,2, \cdots, T$ simultaneously for all $i = 1, 2, \cdots, I $, we require robust posterior inference because each data $\{ y_{it} \}_{t=1}^{T}$ came from different distributions. Therefore, using the half-Cauchy priors for the variance parameters is a reasonable choice for modeling perspective because it has heavier tail than $IG(0.001, 0.001)$. \\
+Note that there is no hyperparameter (or tuning parameter) in this model. As an advantage of using Bayesian framework, the over-fitting problem doesn't manifest in this model.\\
+For the purpose of posterior inference, we make use of parameter expansion for the half-Cauchy distribution; 
+\begin{align}
+\sigma \sim C^{+}(0,1) & \Leftrightarrow
+\begin{cases}
+\sigma^{2} | \eta \sim IG(1/2, 1/\eta)\\
+\eta \sim IG(1/2, 1).
+\end{cases}
+\end{align}
+One of advantage of using this parameter expansion is that, in the Gibbs sampler to sample from the full posterior distribution, all latent variables are sampled in closed form distributions. Figure \ref{fig:DAG_model} shows the Directed Asymmetric Graph (DAG) representation of the model.   The role of each latent variables are as follow:
+\begin{itemize}
+\item $\alpha_{i}$ and $\beta_{i} $ are intercept and slope of the trend line of the $i$-th side, respectively. 
+\item $\alpha_{c}$ and $\beta_{c} $ are intercept and slope of the trend line of Chicago city, respectively. 
+\item $\sigma^{2}$ is the measurement error. 
+\item $\sigma_{\alpha}^{2}$ and $\sigma_{\beta}^{2}$ are measurement errors for intercepts and slopes, respectively. \\
+\item $\eta$, $\eta_{\alpha}$, and $\eta_{\beta}$ are introduced by parameter expansion for the posterior inference purpose. 
+\end{itemize}
+One of point in this modeling is that, parameters in the 9 sides are \emph{learning} each other because there are connected in the higher latent label, Chicago city. In the statistical perspective, this hierarchical structure gives rise to \emph{shrinkage estimation} of parameters for each sides toward those of Chicago city. The shrinkage effect deliberately introduces biases to estimates $\hat{\alpha_{i}} ,\hat{\beta_{i}} $ of 9 sides and improve the overall performance of the estimates than using individual linear regression model for each side. For more detail explanation, see Chapter 7 from Efron \cite{efron2016}. 
+\begin{figure}[h]
+  \begin{center}
+    \begin{tabular}{cc}
+      \input{DAG_LHBM} 
+    \end{tabular}
+  \end{center}
+  \caption{Directed asymmetric graph representation of the model}
+  \label{fig:DAG_model}
+\end{figure}
+\newpage
+\subsection{Gibbs Sampler}
+To get the Markov chain from the full posterior $p(\alpha_{1:I},\beta_{1:I}, \alpha_{c},\beta_{c}, \sigma^{2}, \sigma_{\alpha}^{2}, \sigma_{\beta}^{2}, \eta, \eta_{\alpha},\eta_{\alpha} | \textbf{y}_{1:I} )$, we use the Gibbs sampler, and the full conditional posteriors are as follow:
+
+
+\begin{align}
+p(\bm{\gamma}_{i} | \cdot ) &= 
+N \bigg(\bm{\gamma}_{i} \bigg |
+\Sigma_{\gamma} 
+\bigg[ 
+\frac{1}{\sigma^{2}}
+X^{\top} \bm{y}_{i}
++ 
+\begin{bmatrix}
+\alpha_{c}/\sigma_{\alpha}^{2} \\
+\beta_{c}/\sigma_{\beta}^{2} 
+\end{bmatrix}
+\bigg], 
+\Sigma_{\gamma}
+ \bigg)\\
+& \text{where }
+\Sigma_{\gamma}
+=
+\bigg[
+\frac{1}{\sigma^{2}}X^{\top}X
++ 
+\begin{bmatrix}
+1/\sigma_{\alpha} & 0 \\
+0 & 
+1/\sigma_{\alpha}
+\end{bmatrix}
+\bigg]^{-1}\\
+& \quad \quad \quad \bm{\gamma}_{i}
+= 
+\begin{bmatrix}
+\alpha_{i} \\
+\beta_{i}
+\end{bmatrix}
+\quad
+\text{for} \quad i = 1, 2, \cdots, I\\
+\\
+p(\eta | \cdot ) & = IG(\eta | 1, 1 + 1/\sigma^{2})\\
+p(\eta_{\alpha} | \cdot ) & = IG(\eta_{\alpha} | 1, 1 + 1/\sigma_{\alpha}^{2})\\
+p(\eta_{\beta} | \cdot ) &= IG(\eta_{\beta} | 1, 1 + 1/\sigma_{\beta}^{2})\\
+p(\sigma^{2} | \cdot ) &= IG\bigg(\sigma^{2} \bigg| \frac{I\cdot T +1}{2}, \frac{1}{2} \sum_{i = 1}^{I} \Vert 
+\textbf{y}_{i} - X \bm{\gamma}_{i} \Vert ^{2} + \frac{1}{\eta}
+ \bigg)\\
+p(\sigma_{\alpha}^{2} | \cdot ) &= IG\bigg(\sigma_{\alpha}^{2} \bigg| \frac{I +1}{2}, \frac{1}{2} \sum_{i = 1}^{I} \Vert 
+\bm{\alpha}_{i} - \textbf{1} \alpha_{c} \Vert ^{2} + \frac{1}{\eta_{\alpha}}
+ \bigg)\\
+p(\sigma_{\beta}^{2} | \cdot ) &= IG\bigg(\sigma_{\beta}^{2} \bigg| \frac{I +1}{2}, \frac{1}{2} \sum_{i = 1}^{I} \Vert 
+\bm{\beta}_{i} - \textbf{1} \beta_{c} \Vert ^{2} + \frac{1}{\eta_{\beta}}
+ \bigg)\\
+p(\alpha_{c} | \cdot ) &=N(\alpha_{c} | \bar{\alpha}, \sigma_{\alpha}^{2}/I )
+\quad \text{where   } \bar{\alpha} = \sum_{i=1}^{I} \alpha_{i} \bigg/ I
+\\
+p(\beta_{c} | \cdot ) &=N(\beta_{c} | \bar{\beta}, \sigma_{\beta}^{2}/I )
+\quad \text{where   } \bar{\beta} = \sum_{i=1}^{I} \beta_{i} \bigg/I
+\end{align}
+It is interesting to mention that the full conditional posteriors for all parameter, except the slope and intercept parameters are inverse-gamma. 
+\subsection{Posterior Inference: Simulation Results}
+We have conducted the Gibbs sampler to the weekly time series data $\{y_{it} \}$, and results are as follow.
+\section{Limitation \& Future Work}
+\section{Conclusion}
+\newpage
+\bibliography{taxi}
+\bibliographystyle{unsrt}
+
+\end{document}
