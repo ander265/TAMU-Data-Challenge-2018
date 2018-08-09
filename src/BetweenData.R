@@ -1,3 +1,4 @@
+#Goal: Analyze Taxi Activity occuring within the same Neighborhood (i.e. Pickup & Dropoff in same Region)
 rm(list=ls())
 setwd("D:/Users/Jared/Downloads/Class Lectures and Videos/Data Challenge")
 #install.packages('data.table')
@@ -21,9 +22,10 @@ sides <- rep(0,77)
 for (i in 1:length(Sides))
   sides[Sides[[i]]] <- names(Sides)[i]
 
-slices <- c(10, 12,4, 16, 8)
-lbls <- c("US", "UK", "Australia", "Germany", "France")
-pie(slices, labels = lbls, main="Pie Chart of Countries")
+# Visualization Demo:
+# slices <- c(10, 12,4, 16, 8)
+# lbls <- c("US", "UK", "Australia", "Germany", "France")
+# pie(slices, labels = lbls, main="Pie Chart of Countries")
 
 par(mfrow=c(5,3))
 names = c('Side','Within','Incoming (Dropoffs)','Outgoing (Pickups)')
