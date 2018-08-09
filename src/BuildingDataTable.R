@@ -1,3 +1,4 @@
+#Goal: Reshape data as needed for input of the Bayesian model:
 rm(list=ls())
 setwd("D:/Users/Jared/Downloads/Class Lectures and Videos/Data Challenge")
 #install.packages('data.table')
